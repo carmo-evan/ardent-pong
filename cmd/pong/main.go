@@ -8,27 +8,46 @@ import (
 	"github.com/split-cube-studios/ardent/engine"
 )
 
-func main() {
-	context := engine.NewContext(nil, nil)
+var (
+	screenWidth  = 800
+	screenHeight = 800
+)
 
+func main() {
+
+	pong := new(pong.Game)
+	var camera engine.Camera
 	game := ardent.NewGame(
 		"Ardent - Pong",
-		800,
-		600,
+		screenWidth,
+		screenHeight,
 		engine.FlagResizable,
-		context.Tick,
-		func(ow int, oh int) (int, int) {
-			return 800, 600
+		pong.Tick,
+		func(ow, oh int) (int, int) {
+			rAspect := float64(ow) / float64(oh)
+
+			var w, h int
+			if rAspect >= 1 {
+				w = int(float64(screenHeight) * rAspect)
+				h = screenHeight
+			} else {
+				w = screenWidth
+				h = int(float64(screenWidth) / rAspect)
+			}
+
+			if camera != nil {
+				camera.LookAt(float64(w/2), float64(h/2), 1)
+			}
+			return w, h
 		},
 	)
 
 	renderer := game.NewRenderer()
 	game.AddRenderer(renderer)
-	context.Renderer = renderer
-	pong := pong.Pong{
-		Game:  game,
-		Board: pong.NewBoard(game, context),
-	}
+	camera = game.NewCamera()
+	context := engine.NewContext(renderer, game.NewCollider())
+
+	pong.Setup(game, context, camera)
 	err := pong.Run()
 	if err != nil {
 		log.Fatal(err)

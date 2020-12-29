@@ -11,10 +11,17 @@ type PaddleController interface {
 type Paddle struct {
 	engine.CoreEntity
 	controller PaddleController
+	speed      int
 }
 
 func (p *Paddle) Tick() {
-	// TODO - Handle movement
+	p.CoreEntity.Tick()
+
+	if p.controller.IsKeyPressed(engine.KeyUp) {
+		p.Y += float64(p.speed)
+	} else if p.controller.IsKeyPressed(engine.KeyDown) {
+		p.Y -= float64(p.speed)
+	}
 }
 
 func (b *Paddle) Class() string {
